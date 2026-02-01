@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>FMP API Tester - iOS 17</title>
+  
+  <!-- Eruda Console for Mobile Debugging -->
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>
+    eruda.init();
+    console.log('🔍 Eruda initialized - Tap icon in bottom-right to view console');
+  </script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .btn:active {
+      background: #5568d3;
+    }
+
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .status.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 2px solid #10b981;
+    }
+
+    .status.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 2px solid #ef4444;
+    }
+
+    .status.loading {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 2px solid #3b82f6;
+    }
+
+    .result-section {
+      display: none;
+      margin-top: 20px;
+    }
+
+    .result-section.show {
+      display: block;
+    }
+
+    .result-item {
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .result-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .result-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      word-break: break-all;
+    }
+
+    .test-log {
+      background: #1f2937;
+      color: #10b981;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 12px;
+    }
+
+    .test-log div {
+      margin-bottom: 4px;
+    }
+
+    .test-log .error-log {
+      color: #ef4444;
+    }
+
+    .test-log .info-log {
+      color: #60a5fa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧪 FMP API Tester</h1>
+      <p>iOS 17 Compatibility Check</p>
+    </div>
+
+    <div class="card">
+      <div class="input-group">
+        <label>Stock Ticker Symbol</label>
+        <input type="text" id="ticker" placeholder="e.g., AAPL" value="AAPL">
+      </div>
+
+      <button class="btn" id="testBtn" onclick="runTest()">
+        🚀 Test API Connection
+      </button>
+
+      <button class="btn" style="background: #10b981;" onclick="runAllTests()">
+        🔄 Test All Endpoints
+      </button>
+
+      <div id="status"></div>
+
+      <div id="results" class="result-section"></div>
+
+      <div id="log" class="test-log" style="display: none;"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom: 12px; color: #333;">ℹ️ Device Info</h3>
+      <div class="result-item">
+        <div class="result-label">User Agent</div>
+        <div class="result-value" style="font-size: 11px;" id="userAgent"></div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Screen Size</div>
+        <div class="result-value" id="screenSize"></div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">iOS Version Detected</div>
+        <div class="result-value" id="iosVersion"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_KEY = 'NZQSq4xkFo9wY579rcvyYIh0IrqBSpcd';
+    const log = [];
+
+    // Display device info
+    document.getElementById('userAgent').textContent = navigator.userAgent;
+    document.getElementById('screenSize').textContent = `${window.screen.width} x ${window.screen.height}`;
+    
+    const iosVersion = navigator.userAgent.match(/OS (\d+)_/);
+    document.getElementById('iosVersion').textContent = iosVersion ? `iOS ${iosVersion[1]}` : 'Not iOS or not detected';
+
+    function addLog(message, type = 'success') {
+      const logDiv = document.getElementById('log');
+      logDiv.style.display = 'block';
+      const entry = document.createElement('div');
+      entry.className = type === 'error' ? 'error-log' : type === 'info' ? 'info-log' : '';
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+      console.log(message);
+    }
+
+    function showStatus(message, type) {
+      const statusDiv = document.getElementById('status');
+      statusDiv.className = `status ${type}`;
+      statusDiv.textContent = message;
+      statusDiv.style.display = 'block';
+    }
+
+    function showResults(data) {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.className = 'result-section show';
+      resultsDiv.innerHTML = Object.entries(data).map(([key, value]) => `
+        <div class="result-item">
+          <div class="result-label">${key}</div>
+          <div class="result-value">${typeof value === 'object' ? JSON.stringify(value) : value}</div>
+        </div>
+      `).join('');
+    }
+
+    async function runTest() {
+      const ticker = document.getElementById('ticker').value.toUpperCase().trim();
+      
+      if (!ticker) {
+        showStatus('❌ Please enter a ticker symbol', 'error');
+        return;
+      }
+
+      document.getElementById('testBtn').disabled = true;
+      showStatus('🔄 Testing API connection...', 'loading');
+      document.getElementById('log').innerHTML = '';
+      
+      addLog('Starting API test...', 'info');
+      addLog(`Ticker: ${ticker}`, 'info');
+
+      try {
+        const url = `https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${API_KEY}`;
+        addLog(`Fetching: ${url}`, 'info');
+
+        const response = await fetch(url);
+        addLog(`Response status: ${response.status}`, response.ok ? 'success' : 'error');
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        addLog(`Data received: ${JSON.stringify(data).substring(0, 100)}...`, 'success');
+
+        if (!data || data.length === 0) {
+          throw new Error('No data returned - ticker might be invalid');
+        }
+
+        const quote = data[0];
+        
+        showStatus('✅ API Connection Successful!', 'success');
+        showResults({
+          'Ticker': quote.symbol,
+          'Company': quote.name,
+          'Price': `$${quote.price}`,
+          'Market Cap': quote.marketCap ? `$${(quote.marketCap / 1000000000).toFixed(2)}B` : 'N/A',
+          'Change': `${quote.change > 0 ? '+' : ''}${quote.change} (${quote.changesPercentage}%)`,
+          'Volume': quote.volume?.toLocaleString() || 'N/A',
+          'API Response Time': `${Date.now() - startTime}ms`
+        });
+
+        addLog('✅ Test completed successfully!', 'success');
+
+      } catch (error) {
+        addLog(`❌ Error: ${error.message}`, 'error');
+        showStatus(`❌ API Test Failed: ${error.message}`, 'error');
+        console.error('Full error:', error);
+      } finally {
+        document.getElementById('testBtn').disabled = false;
+      }
+    }
+
+    async function runAllTests() {
+      const ticker = document.getElementById('ticker').value.toUpperCase().trim() || 'AAPL';
+      
+      document.getElementById('log').innerHTML = '';
+      showStatus('🔄 Running comprehensive tests...', 'loading');
+      
+      const endpoints = [
+        { name: 'Quote', url: `https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${API_KEY}` },
+        { name: 'Cash Flow', url: `https://financialmodelingprep.com/api/v3/cash-flow-statement/${ticker}?period=annual&limit=1&apikey=${API_KEY}` },
+        { name: 'Income Statement', url: `https://financialmodelingprep.com/api/v3/income-statement/${ticker}?period=annual&limit=1&apikey=${API_KEY}` },
+        { name: 'Balance Sheet', url: `https://financialmodelingprep.com/api/v3/balance-sheet-statement/${ticker}?period=annual&limit=1&apikey=${API_KEY}` }
+      ];
+
+      let passed = 0;
+      let failed = 0;
+
+      for (const endpoint of endpoints) {
+        try {
+          addLog(`Testing ${endpoint.name}...`, 'info');
+          const response = await fetch(endpoint.url);
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.length > 0) {
+              addLog(`✅ ${endpoint.name}: SUCCESS`, 'success');
+              passed++;
+            } else {
+              addLog(`❌ ${endpoint.name}: No data returned`, 'error');
+              failed++;
+            }
+          } else {
+            addLog(`❌ ${endpoint.name}: HTTP ${response.status}`, 'error');
+            failed++;
+          }
+        } catch (error) {
+          addLog(`❌ ${endpoint.name}: ${error.message}`, 'error');
+          failed++;
+        }
+      }
+
+      if (failed === 0) {
+        showStatus(`✅ All Tests Passed! (${passed}/${endpoints.length})`, 'success');
+      } else {
+        showStatus(`⚠️ ${passed} Passed, ${failed} Failed`, 'error');
+      }
+    }
+
+    let startTime;
+    window.addEventListener('load', () => {
+      startTime = Date.now();
+    });
+  </script>
+</body>
+</html>
